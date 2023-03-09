@@ -368,12 +368,19 @@ class CIFAR100Trainer:
         start_time = time.time()
         self.model.train()
         total_loss, num_batches = 0., 0.
+        dropped_tokens = 0
         all_preds, all_labs = [], []
 
         progress_bar = manager.counter(total=len(loader), desc="Train", unit="batches", color="blue")
         for ims, labs in loader:
             self.optimizer.zero_grad(set_to_none=True)
-            if self.da_recipe == 'mlp_mixer':
+            if self.da_recipe == "moe_convit":
+                with autocast():
+                    out, aux_loss, loads, dropped = self.model(ims)
+                    loss = self.loss_fn(out, labs) + aux_loss
+                    dropped_tokens += dropped
+            
+            elif self.da_recipe == 'mlp_mixer':
                 # CutMix based on https://github.com/omihub777/MLP-Mixer-CIFAR/blob/main/train.py#L54 
                 # NOTE: ch.rand(1).item() causes instability in torch for some unknown reason
                 r = random.uniform(0, 1)
@@ -443,7 +450,8 @@ class CIFAR100Trainer:
             'loss': total_loss / num_batches,
             'accuracy': acc * 100,
             'class_accuracy': class_acc,
-            'time_taken': time_taken
+            'time_taken': time_taken,
+            'dropped_tokens': dropped_tokens
         }
         return metrics
 
@@ -460,6 +468,9 @@ class CIFAR100Trainer:
                 with autocast():
                     if lr_tta:
                         out = (self.model(ims) + self.model(ch.fliplr(ims))) / 2.  # Test-time augmentation
+                    elif self.da_recipe == "moe_convit":
+                        out, aux_loss, loads, dropped = self.model(ims)
+                        loss = self.loss_fn(out, labs) + aux_loss
                     else:
                         out = self.model(ims)
                     loss = self.loss_fn(out, labs)

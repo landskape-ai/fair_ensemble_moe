@@ -25,3 +25,7 @@ python scripts/make_dataset.py
 bash c100_launcher.sh
 ```
 
+# TODOs:
+
+1. Add random initialization of model with MOE
+2. Finetuning MOE modules in the network
