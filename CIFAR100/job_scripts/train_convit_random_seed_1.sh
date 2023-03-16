@@ -14,7 +14,7 @@
 # ulimit -Sn $(ulimit -Hn)
 module load libffi
 module load anaconda/3
-conda activate /home/mila/m/mai-thi.ho/.conda/envs/ndp
+conda activate /home/mila/d/diganta.misra/.conda/envs/ffcv_eg
 
 wandb login bd67cef57b7227730fe3edf96e11d954558a9d0d
 
@@ -24,10 +24,10 @@ unset CUDA_VISIBLE_DEVICES
 # unset LOCAL_RANK
 WANDB_CACHE_DIR=$SCRATCH
 
-pyfile=/home/mila/d/diganta.misra.ho/project/fair_ensemble_moe/CIFAR100/train_cifar100.py
+pyfile=/home/mila/d/diganta.misra/project/fair_ensemble_moe/CIFAR100/train_cifar100.py
 seed=1
 model_name=convit
-yaml_pth=default_config_${model_name}.yaml
+yaml_pth=/home/mila/d/diganta.misra/project/fair_ensemble_moe/default_config_${model_name}.yaml
 
 # Run all random seeds (enforce random seeds for Data Augmentation, Model Init, and Batch Order)
 python $pyfile --config-file ${yaml_pth} --exp.ix $seed --exp.ablation "RANDOM" --seed.DA $seed --seed.model_init $seed --seed.batch_order $seed
