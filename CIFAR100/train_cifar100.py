@@ -358,11 +358,11 @@ class CIFAR100Trainer:
         # Save checkpoint
         ckpt_pth = os.path.join(output_folder, f'model.pt')
         ch.save({
-                    'epoch': epoch,
-                    'model_state_dict': self.model.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict(),
-                    'loss': eval_metrics['loss'],
-                }, ckpt_pth)
+            'epoch': epoch,
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'loss': eval_metrics['loss'],
+        }, ckpt_pth)
 
     @param('training.cutmix_beta')
     @param('training.cutmix_prob')

@@ -23,6 +23,7 @@ logging:
   log_level: 2
 exp:
   folder: ./exps/c100_convit/
+  run_name: convit_cifar100
   ablation: temp
   ix: 0
 model:
