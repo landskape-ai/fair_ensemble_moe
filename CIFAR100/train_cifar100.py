@@ -216,7 +216,7 @@ def make_dataloaders(
     }
 
     if da_recipe == 'default':
-        da_recipe = model_name
+        da_recipe = 'no_DA'
 
     train_DA = DA_regiments[da_recipe]
     for name in ['train', 'eval']:
