@@ -1,0 +1,32 @@
+#!/bin/bash
+#SBATCH --job-name=moe_convit_ensemble
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=05:00:00
+#SBATCH --gres=gpu:rtx8000:1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32G
+#SBATCH --signal=SIGUSR1@90 # 90 seconds before time limit
+#SBATCH --output=/home/mila/d/diganta.misra/scratch/fair_moe/convit_moe.out
+#SBATCH --error=/home/mila/d/diganta.misra/scratch/fair_moe/convit_moe.err
+#SBATCH --no-requeue
+
+# ulimit -Sn $(ulimit -Hn)
+module load libffi
+module load anaconda/3
+conda activate /home/mila/m/mai-thi.ho/.conda/envs/ndp
+
+wandb login bd67cef57b7227730fe3edf96e11d954558a9d0d
+
+ulimit -Sn $(ulimit -Hn)
+
+unset CUDA_VISIBLE_DEVICES
+# unset LOCAL_RANK
+WANDB_CACHE_DIR=$SCRATCH
+
+pyfile=/home/mila/d/diganta.misra.ho/project/fair_ensemble_moe/CIFAR100/train_cifar100.py
+seed=1
+model_name=moe_convit
+yaml_pth=default_config_${model_name}.yaml
+
+python $pyfile --config-file ${yaml_pth} --exp.ix $seed --exp.ablation "RANDOM" --seed.DA $seed --seed.model_init $seed --seed.batch_order $seed
