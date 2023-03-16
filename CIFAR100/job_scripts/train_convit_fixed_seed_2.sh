@@ -27,7 +27,7 @@ WANDB_CACHE_DIR=$SCRATCH
 pyfile=/home/mila/d/diganta.misra/projects/fair_ensemble_moe/CIFAR100/train_cifar100.py
 seed=2
 model_name=convit
-yaml_pth=/home/mila/d/diganta.misra/projects/fair_ensemble_moe/default_config_${model_name}.yaml
+yaml_pth=/home/mila/d/diganta.misra/projects/fair_ensemble_moe/CIFAR100/default_config_${model_name}.yaml
 
 # Run fixed seeds for Model Init and Batch Order (enforce random seeds for Data Augmentation)
 python $pyfile --config-file ${yaml_pth} --exp.ix $seed --exp.ablation "MS_BS" --seed.DA $seed
