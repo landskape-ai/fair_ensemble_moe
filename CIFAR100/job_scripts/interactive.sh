@@ -3,9 +3,9 @@ echo arg 1 - 'Path of python script'
 echo arg 2 - 'Name of model'
 echo arg 3 - '(Optional) config yaml path, defaults to default_config_<model_name>.yaml'
 
-pyfile={$1:-"train_cifar100.py"}
+pyfile={$1:-"/home/mila/d/diganta.misra/projects/fair_ensemble_moe/CIFAR100/train_cifar100.py"}
 model_name=$2
-default_yaml=default_config_${model_name}.yaml
+default_yaml=/home/mila/d/diganta.misra/projects/fair_ensemble_moe/default_config_${model_name}.yaml
 yaml_pth=${3:-$default_yaml}
 seed=${4:-"1"}
 

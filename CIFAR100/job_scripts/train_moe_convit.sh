@@ -24,9 +24,9 @@ unset CUDA_VISIBLE_DEVICES
 # unset LOCAL_RANK
 WANDB_CACHE_DIR=$SCRATCH
 
-pyfile=/home/mila/d/diganta.misra/project/fair_ensemble_moe/CIFAR100/train_cifar100.py
+pyfile=/home/mila/d/diganta.misra/projects/fair_ensemble_moe/CIFAR100/train_cifar100.py
 seed=1
 model_name=moe_convit
-yaml_pth=/home/mila/d/diganta.misra/project/fair_ensemble_moe/default_config_${model_name}.yaml
+yaml_pth=/home/mila/d/diganta.misra/projects/fair_ensemble_moe/default_config_${model_name}.yaml
 
 python $pyfile --config-file ${yaml_pth} --exp.ix $seed --exp.ablation "RANDOM" --seed.DA $seed --seed.model_init $seed --seed.batch_order $seed
