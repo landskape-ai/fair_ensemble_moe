@@ -711,7 +711,8 @@ class ConVit(nn.Module):
 
     def forward(self, x, distillation=False, task=None):
         x = self.forward_features(x, distillation=distillation)[0]
-        return x
+        out = self.classifier(x)
+        return out
 
 class MoEConVit(ConVit):
     def __init__(self, moe_args, img_size=224, patch_size=16, in_chans=3, num_classes=1000, embed_dim=768, depth=12,
@@ -728,6 +729,7 @@ class MoEConVit(ConVit):
         self._build_moe_blocks(moe_args)
         self.num_experts = moe_args["num_experts"]
         self.k = moe_args["k"]
+        self.classifier = nn.Linear(embed_dim, num_classes)
 
     def _build_moe_blocks(self, moe_args):
         upcycle_ratio = moe_args["upcycle_ratio"]
@@ -824,7 +826,8 @@ class MoEConVit(ConVit):
 
     def forward(self, x, distillation=False, task=None):
         x, losses, loads, dropped_tokens = self.forward_features(x, distillation=distillation, task=task)
-        return x, losses, loads, dropped_tokens
+        out = self.classifier(x)
+        return out, losses, loads, dropped_tokens
 
 
 def construct_convit(num_classes):
@@ -851,8 +854,8 @@ def construct_moe_convit(num_classes):
         noisy_gating=False,
         dropout=0.0,
         hidden_act='gelu',
-        input_size=32,
-        hidden_size=32,
+        input_size=384,
+        hidden_size=384,
         upcycle_ratio=0.25,
         upcycle_order="dense_first",
         routing="switch",
