@@ -555,7 +555,7 @@ if __name__ == "__main__":
     loaders = make_dataloaders()
     
     run = wandb.init(
-        entity="landskapeai",
+        entity="landskape",
         project="Fair Ensemble MoE",
         name=config["exp.run_name"],
         dir=output_folder,
