@@ -23,6 +23,7 @@ logging:
   log_level: 2
 exp:
   folder: ./exps/c100_moe_convit/
+  run_name: moe_convit_cifar100
   ablation: temp
   ix: 0
 model:

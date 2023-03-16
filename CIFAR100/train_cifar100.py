@@ -61,6 +61,8 @@ from fastargs.validation import And, OneOf
 from utils import rand_bbox, WarmUpLR, CutOut
 from warmup_scheduler import GradualWarmupScheduler
 
+import wandb
+
 Section('training', 'Hyperparameters').params(
     optim_name=Param(str, 'optimizer to use', default="sgd"),
     scheduler_name=Param(str, 'scheduler to use', default="default"),
@@ -453,6 +455,7 @@ class CIFAR100Trainer:
             'time_taken': time_taken,
             'dropped_tokens': dropped_tokens
         }
+        wandb.log({f"train/{v}": v for k, v in metrics.items()})
         return metrics
 
     @param('eval.lr_tta')
@@ -504,6 +507,7 @@ class CIFAR100Trainer:
             'class_accuracy': class_acc,
             'time_taken': time_taken
         }
+        wandb.log({f"val/{v}": v for k, v in metrics.items()})
         return metrics
 
     def initialize_logger(self, folder):
@@ -549,9 +553,20 @@ if __name__ == "__main__":
     # Create Dataloaders
     start_time = time.time()
     loaders = make_dataloaders()
+    
+    run = wandb.init(
+        entity="landskapeai",
+        project="Fair Ensemble MoE",
+        name=config["exp.run_name"],
+        dir=output_folder,
+        save_code=True,
+        config=vars(config),
+    )
 
     # Train Model
     trainer = CIFAR100Trainer(output_folder=output_folder)
     trainer.train(loaders=loaders, output_folder=output_folder)
 
     print(f'Total Time: {datetime.timedelta(seconds=time.time() - start_time)}')
+
+    run.finish()
