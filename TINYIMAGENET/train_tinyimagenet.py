@@ -25,6 +25,7 @@ def numba_set_seed(value):
 import torch as ch
 
 from argparse import ArgumentParser
+import wandb
 import time
 import datetime
 import json
@@ -43,9 +44,8 @@ from ffcv.pipeline.operation import Operation
 from ffcv.transforms import Convert, ToDevice, ToTensor, ToTorchImage
 from ffcv.transforms.common import Squeeze
 
-from ffcv_ext.loader import Loader
-from ffcv_ext.ops import RandomHorizontalFlip
-from ffcv_ext.resized_crop import RandomResizedCropDecoder
+from ffcv.loader import Loader
+from ffcv_utils import RandomHorizontalFlip, RandomResizedCropDecoder
 
 from models import model_list
 
@@ -58,6 +58,7 @@ from fastargs.decorators import param
 from fastargs.validation import And, OneOf
 
 from warmup_scheduler import GradualWarmupScheduler
+
 
 
 Section('training', 'Hyperparameters').params(
@@ -188,6 +189,20 @@ def make_dataloaders(
             ),
             torchvision.transforms.Normalize(dataset_mean, dataset_std),
         ], 
+        'moe_convit': [
+            ToTensor(),
+            ToDevice('cuda:0', non_blocking=True),
+            ToTorchImage(),
+            torchvision.transforms.RandomHorizontalFlip(),
+            torchvision.transforms.RandomCrop(64, padding=4), 
+            torchvision.transforms.AutoAugment(policy=torchvision.transforms.AutoAugmentPolicy.IMAGENET),
+            Convert(ch.float16),
+            torchvision.transforms.RandomErasing(
+                p=0.25, scale=(0.02, 0.4), ratio=(0.3, 1/0.3),
+                value=dataset_mean.tolist()
+            ),
+            torchvision.transforms.Normalize(dataset_mean, dataset_std),
+        ], 
         'resnet50': [
             RandomHorizontalFlip(seed=DA),
             ToTensor(),
@@ -237,7 +252,7 @@ def make_dataloaders(
         image_pipeline: List[Operation] = [SimpleRGBImageDecoder()]
         image_pipeline[0] = CenterCropRGBImageDecoder((64, 64), 1)
         if name == 'train':
-            if da_recipe != "vit": 
+            if da_recipe != "vit" and da_recipe!= "moe_convit": 
                 image_pipeline[0] = RandomResizedCropDecoder((64,64), seed=DA)
                 # image_pipeline[0] = SimpleRGBImageDecoder()
             image_pipeline.extend(train_DA)
@@ -386,12 +401,18 @@ class TinyImagenetTrainer:
         start_time = time.time()
         self.model.train()
         total_loss, num_batches = 0., 0.
+        dropped_tokens = 0
         all_preds, all_labs = [], []
 
         #progress_bar = manager.counter(total=len(loader), desc="Train", unit="batches", color="blue")
         for ims, labs in loader:
             self.optimizer.zero_grad(set_to_none=True)
-            if da_recipe == 'vit':
+            if da_recipe == 'moe_convit':
+                with autocast():
+                    out, aux_loss, loads, dropped = self.model(ims)
+                    loss = self.loss_fn(out, labs) + aux_loss
+                    dropped_tokens += dropped
+            elif da_recipe == 'vit':
                 r = random.uniform(0, 1)
                 if r < 0.5:
                     switching_prob = random.uniform(0, 1)
@@ -455,12 +476,15 @@ class TinyImagenetTrainer:
             'loss': total_loss / num_batches,
             'accuracy': acc * 100,
             'class_accuracy': class_acc,
-            'time_taken': time_taken
+            'time_taken': time_taken,
+            # 'dropped_tokens': dropped_tokens
         }
+        # wandb.log({f"train/{v}": v for k, v in metrics.items()})
         return metrics
 
     @param('eval.lr_tta')
-    def eval_loop(self, loader, lr_tta):
+    @param('training.da_recipe')
+    def eval_loop(self, loader, lr_tta, da_recipe):
         start_time = time.time()
         self.model.eval()
         with ch.no_grad():
@@ -472,6 +496,9 @@ class TinyImagenetTrainer:
                 with autocast():
                     if lr_tta:
                         out = (self.model(ims) + self.model(ch.fliplr(ims))) / 2.  # Test-time augmentation
+                    elif da_recipe == "moe_convit":
+                        out, aux_loss, loads, dropped = self.model(ims)
+                        loss = self.loss_fn(out, labs) + aux_loss
                     else:
                         out = self.model(ims)
                     loss = self.loss_fn(out, labs)
@@ -509,6 +536,7 @@ class TinyImagenetTrainer:
             'class_accuracy': class_acc,
             'time_taken': time_taken
         }
+        # wandb.log({f"val/{v}": v for k, v in metrics.items()})
         return metrics
 
     def initialize_logger(self, folder):
@@ -554,6 +582,17 @@ if __name__ == "__main__":
     # Create Dataloaders
     start_time = time.time()
     loaders = make_dataloaders()
+
+    # Initialisation for weights and biases tracking
+    # run = wandb.init(
+    #     entity="landskape",
+    #     project="Fair Ensemble MoE",
+    #     name=config["exp.name"],
+    #     dir=output_folder,
+    #     save_code=True,
+    #     config=vars(config),
+    # )
+
 
     # Train Model
     trainer = TinyImagenetTrainer(output_folder=output_folder)

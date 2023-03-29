@@ -135,7 +135,8 @@ def get_center_crop(height, width, _, ratio, r1, r2, r3, r4):
     return delta_h, delta_w, c, c
 
 
-class RandomResizedCropRGBImageDecoder(rgb_image.RandomResizedCropRGBImageDecoder):
+# class RandomResizedCropRGBImageDecoder(rgb_image.RandomResizedCropRGBImageDecoder):
+class RandomResizedCropDecoder(rgb_image.RandomResizedCropRGBImageDecoder):
     """Decoder for :class:`~ffcv.fields.RGBImageField` that performs a Random crop and and a resize operation.
     It supports both variable and constant resolution datasets.
     Parameters
