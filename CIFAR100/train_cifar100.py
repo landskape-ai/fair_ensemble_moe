@@ -455,7 +455,7 @@ class CIFAR100Trainer:
             'time_taken': time_taken,
             'dropped_tokens': dropped_tokens
         }
-        wandb.log({f"train/{v}": v for k, v in metrics.items()})
+        wandb.log({f"train/{k}": v for k, v in metrics.items()})
         return metrics
 
     @param('eval.lr_tta')
@@ -507,7 +507,7 @@ class CIFAR100Trainer:
             'class_accuracy': class_acc,
             'time_taken': time_taken
         }
-        wandb.log({f"val/{v}": v for k, v in metrics.items()})
+        wandb.log({f"val/{k}": v for k, v in metrics.items()})
         return metrics
 
     def initialize_logger(self, folder):
@@ -557,7 +557,7 @@ if __name__ == "__main__":
     run = wandb.init(
         entity="landskape",
         project="Fair Ensemble MoE",
-        name=config["exp.run_name"],
+        name='Initial run',
         dir=output_folder,
         save_code=True,
         config=vars(config),
