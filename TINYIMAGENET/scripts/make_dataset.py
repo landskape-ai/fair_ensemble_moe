@@ -36,7 +36,7 @@ if not os.path.exists(FFCV_DATAPATH):
 
 class TrainTinyImageNetDataset(Dataset):
     def __init__(self, id, transform=None):
-        self.filenames = glob.glob("/content/tiny-imagenet-200/train/*/*/*.JPEG")
+        self.filenames = glob.glob("./{ORIG_DATAPATH}/tiny-imagenet-200/train/*/*/*.JPEG")
         self.transform = transform
         self.id_dict = id
 
@@ -57,11 +57,11 @@ class TrainTinyImageNetDataset(Dataset):
 
 class TestTinyImageNetDataset(Dataset):
     def __init__(self, id, transform=None):
-        self.filenames = glob.glob("/content/tiny-imagenet-200/val/images/*.JPEG")
+        self.filenames = glob.glob("./{ORIG_DATAPATH}/tiny-imagenet-200/val/images/*.JPEG")
         self.transform = transform
         self.id_dict = id
         self.cls_dic = {}
-        for i, line in enumerate(open('/content/tiny-imagenet-200/val/val_annotations.txt', 'r')):
+        for i, line in enumerate(open('./{ORIG_DATAPATH}/tiny-imagenet-200/val/val_annotations.txt', 'r')):
             a = line.split('\t')
             img, cls_id = a[0],a[1]
             self.cls_dic[img] = self.id_dict[cls_id]
@@ -89,7 +89,7 @@ def download_tinyImg200(path,
                      tarname='tiny-imagenet-200.zip'):
     if not os.path.exists(path):
         os.mkdir(path)
-    urlretrieve(url, os.path.join(path,tarname))
+    urlretrieve(url, os.path.join(path, tarname))
     print (os.path.join(path,tarname))
     import zipfile
     zip_ref = zipfile.ZipFile(os.path.join(path,tarname), 'r')
@@ -99,7 +99,7 @@ def download_tinyImg200(path,
 download_tinyImg200(ORIG_DATAPATH)
 
 id_dict = {}
-for i, line in enumerate(open('/content/tiny-imagenet-200/wnids.txt', 'r')):
+for i, line in enumerate(open('./{ORIG_DATAPATH}/tiny-imagenet-200/wnids.txt', 'r')):
   id_dict[line.replace('\n', '')] = i
 
 trainset = TrainTinyImageNetDataset(id=id_dict)
