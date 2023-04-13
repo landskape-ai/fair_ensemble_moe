@@ -9,7 +9,7 @@ data:
   eval_dataset: ./dataset_ffcv/cifar_test.beton
 training:
   optim_name: adam
-  scheduler_name: mlp_mixer_default
+  scheduler_name: vit_default
   batch_size: 128
   epochs: 50
   lr: 0.001
