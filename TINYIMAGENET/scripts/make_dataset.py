@@ -36,7 +36,7 @@ if not os.path.exists(FFCV_DATAPATH):
 
 class TrainTinyImageNetDataset(Dataset):
     def __init__(self, id, transform=None):
-        self.filenames = glob.glob("./{ORIG_DATAPATH}/tiny-imagenet-200/train/*/*/*.JPEG")
+        self.filenames = glob.glob(f"./{ORIG_DATAPATH}/tiny-imagenet-200/train/*/*/*.JPEG")
         self.transform = transform
         self.id_dict = id
 
@@ -57,11 +57,11 @@ class TrainTinyImageNetDataset(Dataset):
 
 class TestTinyImageNetDataset(Dataset):
     def __init__(self, id, transform=None):
-        self.filenames = glob.glob("./{ORIG_DATAPATH}/tiny-imagenet-200/val/images/*.JPEG")
+        self.filenames = glob.glob(f"./{ORIG_DATAPATH}/tiny-imagenet-200/val/images/*.JPEG")
         self.transform = transform
         self.id_dict = id
         self.cls_dic = {}
-        for i, line in enumerate(open('./{ORIG_DATAPATH}/tiny-imagenet-200/val/val_annotations.txt', 'r')):
+        for i, line in enumerate(open(f'./{ORIG_DATAPATH}/tiny-imagenet-200/val/val_annotations.txt', 'r')):
             a = line.split('\t')
             img, cls_id = a[0],a[1]
             self.cls_dic[img] = self.id_dict[cls_id]
